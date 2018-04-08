@@ -34,9 +34,11 @@ def get_refer_point(ret,frame):
     # if ret is True:
         finalResult = preprocess_image(frame)
         img,cont,h= cv2.findContours(finalResult.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
-        d = {}
+        d = []
         rfx = 0
         rfy = 0
+        btc1 = 0
+        btc2 = 0
         if (len(cont)!=0):
             for i in range(len(cont)):
                 area = cv2.contourArea(cont[i])
@@ -60,12 +62,14 @@ def get_refer_point(ret,frame):
 
                     ry_lst = sorted(ry_lst, key = lambda k: k[1])
                     bottom_corners.append(ry_lst[-2:])
+                    btc1 = [bottom_corners[0][0][0],bottom_corners[0][0][1]]
+                    btc2 = [bottom_corners[0][1][0],bottom_corners[0][1][1]]
                     refer_point = [(bottom_corners[0][1][0] + bottom_corners[0][0][0])/2, (bottom_corners[0][1][1] + bottom_corners[0][0][1])/2]
                     rfx = int(refer_point[0])
                     rfy = int(refer_point[1])
                     cv2.circle(f,(rfx,rfy),5,(0,255,255),-1)
                     cv2.putText(f,('(' + str(rfx) + ',' + str(rfy) + ')'),(rfx-40,rfy+30),cv2.FONT_HERSHEY_SIMPLEX,0.4,(0,0,0),1,True)
-                d[i] = {'Area':area,'Refer_point':[rfx,rfy]}
+                d.append({i:{'Area':area,'Refer_point':[rfx,rfy],'Bottom_corner1':btc1,'Bottom_corner2':btc2}})
                 return d
         else:
             return ('No Obstacle Found')
