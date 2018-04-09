@@ -10,30 +10,30 @@ def preprocess_image(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     # define range of pink color in HSV may try with +10 or -10
-    lowerBound=np.array([hsv_pink[0][0][0]-20,147,147])
-    upperBound=np.array([hsv_pink[0][0][0]+20,255,255])
+    lower_bound=np.array([hsv_pink[0][0][0]-20,147,147])
+    upper_bound=np.array([hsv_pink[0][0][0]+20,255,255])
 
     # Threshold the HSV image to get only pink colors
-    mask = cv2.inRange(hsv, lowerBound, upperBound)
+    mask = cv2.inRange(hsv, lower_bound, upper_bound)
 
     # Bitwise-AND mask and original image
     res = cv2.bitwise_and(frame,frame, mask = mask)
 
-    #morphology
+    #Morphology - Opening (eroison (remove noises) followed by dilation (increase object area)), Closing (dilation (closing small holes inside object) followed by eroison)
     kernel = np.ones((5,5),np.uint8)
     opening = cv2.morphologyEx(res,cv2.MORPH_OPEN,kernel)
     closing = cv2.morphologyEx(opening,cv2.MORPH_CLOSE,kernel)
-    finalResult = closing.copy()
-    finalResult = cv2.cvtColor(finalResult,cv2.COLOR_RGB2GRAY)
+    final_result = closing.copy()
+    final_result = cv2.cvtColor(final_result,cv2.COLOR_RGB2GRAY)
 
-    return finalResult
+    return final_result
 
 def get_refer_point(ret,frame):
 # while(cap.isOpened()):
 #     ret,frame = cap.read()
     # if ret is True:
-        finalResult = preprocess_image(frame)
-        img,cont,h= cv2.findContours(finalResult.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+        final_result = preprocess_image(frame)
+        img,cont,h= cv2.findContours(final_result.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
         d = []
         rfx = 0
         rfy = 0
@@ -45,7 +45,6 @@ def get_refer_point(ret,frame):
                 if(area>8000):
                     cv2.drawContours(frame,cont[i],contourIdx = -1,color = (255,0,0),thickness = 2,maxLevel = 1)
                     x,y,w,h = cv2.boundingRect(cont[i])
-
                     f = cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
                     cv2.putText(f,"Obstacle",(x+10,y-20),cv2.FONT_HERSHEY_SIMPLEX,0.7,(0,0,255),1)
                     approx = cv2.approxPolyDP(cont[i],0.05*cv2.arcLength(cont[i],True),True)
@@ -69,10 +68,10 @@ def get_refer_point(ret,frame):
                     rfy = int(refer_point[1])
                     cv2.circle(f,(rfx,rfy),5,(0,255,255),-1)
                     cv2.putText(f,('(' + str(rfx) + ',' + str(rfy) + ')'),(rfx-40,rfy+30),cv2.FONT_HERSHEY_SIMPLEX,0.4,(0,0,0),1,True)
-                d.append({i:{'Area':area,'Refer_point':[rfx,rfy],'Bottom_corner1':btc1,'Bottom_corner2':btc2}})
+                d.append({i:{'area':area,'refer_point':[rfx,rfy],'bottom_corner1':btc1,'bottom_corner2':btc2}})
                 return d
         else:
-            return ('No Obstacle Found')
+            return 'No Obstacle Found'
 
 
         # cv2.imshow('showContour',f)
